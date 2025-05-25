@@ -17,7 +17,8 @@ endif(NOT CMAKE_C_STANDARD)
 # C++ standard can be overridden when this is used as a sub-project.
 if(NOT CMAKE_CXX_STANDARD)
   # This project requires C++11.
-  set(CMAKE_CXX_STANDARD 11)
+  # set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif(NOT CMAKE_CXX_STANDARD)
@@ -30,6 +31,7 @@ else (WIN32)
   set(LEVELDB_PLATFORM_NAME LEVELDB_PLATFORM_POSIX)
 endif (WIN32)
 
+option(LEVELDB_BUILD_VLOG "Build vlog (support by PMDK)" ON)
 option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 option(LEVELDB_BUILD_BENCHMARKS "Build LevelDB's benchmarks" ON)
 option(LEVELDB_INSTALL "Install LevelDB's header and library" ON)
@@ -289,6 +291,17 @@ add_executable(leveldbutil
   "db/leveldbutil.cc"
 )
 target_link_libraries(leveldbutil leveldb)
+
+if (LEVELDB_BUILD_VLOG)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(PMEM2 REQUIRED libpmem2)
+
+  add_executable(vlog "")
+  target_sources(vlog PRIVATE "vlog/vlog_main.cc")
+  target_include_directories(vlog PUBLIC ${PMEM2_INCLUDE_DIRS})
+  target_link_libraries(vlog PUBLIC ${PMEM2_LIBRARIES} leveldb)
+
+endif(LEVELDB_BUILD_VLOG)
 
 if(LEVELDB_BUILD_TESTS)
   enable_testing()
