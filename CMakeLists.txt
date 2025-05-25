@@ -32,6 +32,7 @@ endif (WIN32)
 
 option(LEVELDB_BUILD_TESTS "Build LevelDB's unit tests" ON)
 option(LEVELDB_BUILD_BENCHMARKS "Build LevelDB's benchmarks" ON)
+option(LEVELDB_BUILD_VLOG "Build vlog(support by PMDK)" ON)
 option(LEVELDB_INSTALL "Install LevelDB's header and library" ON)
 
 include(CheckIncludeFile)
@@ -289,6 +290,10 @@ add_executable(leveldbutil
   "db/leveldbutil.cc"
 )
 target_link_libraries(leveldbutil leveldb)
+
+if (LEVELDB_BUILD_VLOG)
+
+endif(LEVELDB_BUILD_VLOG)
 
 if(LEVELDB_BUILD_TESTS)
   enable_testing()
