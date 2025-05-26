@@ -298,7 +298,11 @@ if (LEVELDB_BUILD_VLOG)
 
   add_executable(vlog "")
   target_sources(vlog PRIVATE "vlog/vlog_main.cc")
-  target_include_directories(vlog PUBLIC ${PMEM2_INCLUDE_DIRS})
+  target_include_directories(vlog PUBLIC 
+    ${PMEM2_INCLUDE_DIRS}
+    "${PROJECT_BINARY_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/include"
+  )
   target_link_libraries(vlog PUBLIC ${PMEM2_LIBRARIES} leveldb)
 
 endif(LEVELDB_BUILD_VLOG)
