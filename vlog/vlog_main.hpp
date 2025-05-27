@@ -16,6 +16,8 @@
 #define MPATH_PM "/home/luchao/tleveldb/pm/tmpdb"
 #define MPATH_NM "/home/luchao/tleveldb/tmpdb"
 
+#define PMDEV "/home/luchao/tleveldb/pm/"
+
 class Kvs {
     public:
         Kvs(const std::string &path):path(path) {}
@@ -79,6 +81,7 @@ class example {
         virtual ~example();
 
         void test();
+        pmem2_granularity get_granularity(pmem2_map *map);
     
     private:
         int fd;
@@ -86,22 +89,28 @@ class example {
         struct pmem2_config *cfg;
         struct pmem2_source *src;
         struct pmem2_map    *map;
+        struct pmem2_vm_reservation *vm_rsv;
 };
 
+pmem2_granularity example::get_granularity(pmem2_map *map) {
+    return pmem2_map_get_store_granularity(map);
+}
+
 void example::test() {
+    assert(get_granularity(map) == PMEM2_GRANULARITY_CACHE_LINE);
 
     char *addr = (char *)pmem2_map_get_address(map);
     size_t size = pmem2_map_get_size(map);
-    // for (int i=0; i<3; i++)
-    //     std::cout << addr + i << std::endl;
-    // return ;
-    std::cout << size;
+    std::cout << "map_addr = " << (uint64_t)addr << std::endl;
 
     uint64_t iWant = 0x44332211AABBCCDD;
-    uint64_t *wpointer = reinterpret_cast<uint64_t *>(addr); 
+    uint64_t iWant2 = 0xFABEDC22FFBBAADD;
+    uint64_t *wpointer = reinterpret_cast<uint64_t *>(addr);
     *wpointer = iWant;
+    *(wpointer + 1) = iWant2;
 
-    persist_fn(addr, 8);
+    persist_fn(wpointer, 8);
+    persist_fn(wpointer + 1, 8);
 }
 example::~example() {
     pmem2_map_delete(&map);
@@ -111,6 +120,7 @@ example::~example() {
 }
 example::example(std::string filepath) {
     int err;
+    filepath += "abc.txt";
     if ((fd = open(filepath.c_str(), O_RDWR)) < 0) {
         // throw std::runtime_error("fd error");
         std::cerr << "fd error";
@@ -138,10 +148,10 @@ example::example(std::string filepath) {
       return;
     }
 
-    // if (pmem2_config_set_length(cfg, 1024)) {
-    //     std::cerr << "pmem2_cfg_setlen error";
-    //     return ;
-    // }
+    if (err = pmem2_config_set_sharing(cfg, PMEM2_SHARED)) {
+        std::cerr << "pmem2_set_sharing error" << err;
+        return ;
+    }
 
     if (err = pmem2_map_new(&map, cfg, src)) {
         std::cerr << "pmem2_map_new error = " << err;
