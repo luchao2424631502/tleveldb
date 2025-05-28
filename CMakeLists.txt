@@ -295,6 +295,8 @@ target_link_libraries(leveldbutil leveldb)
 if (LEVELDB_BUILD_VLOG)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(PMEM2 REQUIRED libpmem2)
+  find_package(spdlog REQUIRED)
+  find_package(fmt REQUIRED)
 
   add_executable(vlog "")
   target_sources(vlog PRIVATE "vlog/vlog_main.cc")
@@ -303,7 +305,8 @@ if (LEVELDB_BUILD_VLOG)
     "${PROJECT_BINARY_DIR}/include"
     "${PROJECT_SOURCE_DIR}/include"
   )
-  target_link_libraries(vlog PUBLIC ${PMEM2_LIBRARIES} leveldb)
+  target_compile_options(vlog PRIVATE -fexceptions)
+  target_link_libraries(vlog PUBLIC ${PMEM2_LIBRARIES} leveldb spdlog::spdlog fmt::fmt)
 
 endif(LEVELDB_BUILD_VLOG)
 
