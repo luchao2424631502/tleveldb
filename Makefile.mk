@@ -1,0 +1,9 @@
+CC
+
+TARGET=tkv
+
+TARGET: THIRD
+	$
+
+THIRD:
+	$
