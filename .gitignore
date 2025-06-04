@@ -2,9 +2,11 @@
 *.sw*
 .vscode
 .DS_Store
+tkv
 
 # Build directory.
 build/
 out/
 pm/
 tmpdb/
+lib/leveldb/installed

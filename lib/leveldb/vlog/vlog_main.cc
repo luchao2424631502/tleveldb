@@ -3,7 +3,7 @@
 #include "vlog/example.h"
 
 int main() {
-    example e1(DAXDEV);
-    e1.test();
+    // example e1(DAXDEV);
+    // e1.test();
     return 0;
 }
