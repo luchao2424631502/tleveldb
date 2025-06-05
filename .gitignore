@@ -10,3 +10,4 @@ out/
 pm/
 tmpdb/
 lib/leveldb/installed
+test/test_main
