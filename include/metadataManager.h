@@ -1,8 +1,9 @@
 #ifndef METADATAMANAGER_H
 #define METADATAMANAGER_H
 
-#include "define.h"
 #include <cstddef>
+
+#include "define.h"
 
 struct POOL_EMERALD_ROOT {
     size_t len;
@@ -10,7 +11,7 @@ struct POOL_EMERALD_ROOT {
 };
 
 // struct PoolEmeraldRoot {
-// 
+//
 // }
-// 
+//
 #endif
