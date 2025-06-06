@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-Group::Group(FsDaxDevice *fsdev, int gid) : pool(fsdev), _gid(gid) {
+Group::Group(FsDaxDevice *fsdev, int gid) : pool(fsdev), _gid_dram(gid) {
     // 分区内链表不存在, 初始化链表
     if (!check_list_exist()) {
         spdlog::info("Group::Group() init_list");
@@ -30,12 +30,12 @@ Group::Group(FsDaxDevice *fsdev, int gid) : pool(fsdev), _gid(gid) {
         pmemobj_drain(pool->pop);
 
         // DRAM-group 赋值
-        _gid = gid;
-        _allocated_nums = 0;
+        _gid_dram = gid;
+        _node_count_dram = 0;
 
         // DRAM-写结构 赋值
-        tail = static_cast<listnode *>(pmemobj_direct(new_node));
-        offset = 0;
+        _tail_dram = static_cast<listnode *>(pmemobj_direct(new_node));
+        _offset_dram = 0;
     } else {  // 读取链表
         spdlog::info("Group::Group() read_list");
     }
@@ -44,6 +44,16 @@ Group::Group(FsDaxDevice *fsdev, int gid) : pool(fsdev), _gid(gid) {
 Group::~Group() {  // 保存到 PM 中
     // 将 写指针 保存到 root 区
     delete pool;
+}
+
+listroot *Group::get_pm_root() {
+    PMEMoid meta_root = pmemobj_root(pool->pop, sizeof(listroot));
+    if (OID_IS_NULL(meta_root)) {
+        spdlog::error("oid_is_null ");
+        return nullptr;
+    }
+    listroot *meta_ptr = static_cast<listroot *>(pmemobj_direct(meta_root));
+    return meta_ptr;
 }
 
 bool Group::check_list_exist() {
@@ -64,20 +74,20 @@ PMEMoid Group::alloc_node() {
     PMEMoid new_node_oid;
     int ret =
         pmemobj_alloc(pop, &new_node_oid, sizeof(listnode), 0,
-                      listnode::listnode_construct, (void *)(&_allocated_nums));
+                      listnode::listnode_construct, (void *)(&_node_count_dram));
     if (ret == -1) {
         perror("Group::alloc_node");
         throw std::runtime_error("error");
         return OID_NULL;
     }
-    _allocated_nums++;
+    _node_count_dram++;
     assert(!OID_IS_NULL(new_node_oid));
     return new_node_oid;
 }
 
 void Group::free_node(PMEMoid node) {
     pmemobj_free(&node);
-    _allocated_nums--;
+    _node_count_dram--;
 }
 
 void Group::add_node_to_tail(PMEMoid node_oid) {  // pass

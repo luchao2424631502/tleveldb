@@ -6,12 +6,12 @@
 
 TEST(GroupManager, size) {
     GroupManager g1;
-    // g1.test();
 
-    // spdlog::info("list_node size = {}", sizeof(listnode));
-    // assert(sizeof(listnode) == (256 * (1UL << 20)));
+    listroot *root = g1[0].get_pm_root();
+
     EXPECT_EQ(sizeof(listnode), 256*(1UL<<20)); // 链表节点大小
     EXPECT_EQ(sizeof(listroot), 56);    // 根节点大小
+    EXPECT_EQ(root->gid, 0);
 }
 
 TEST(Group, insert_and_free_node) {
@@ -45,8 +45,10 @@ TEST(Group, insert_and_free_node) {
     // PASSED
     g1[0].delete_node_from_list(node2_oid, node3_oid);
     EXPECT_EQ(meta_ptr->node_count, 2);
+    EXPECT_EQ(meta_ptr->tail.off, node2_oid.off);
     g1[0].delete_node_from_list(meta_ptr->head, node2_oid);
     EXPECT_EQ(meta_ptr->node_count, 1);
+    EXPECT_EQ(meta_ptr->tail.off, meta_ptr->head.off);
 }
 
 TEST(Group, read_list) {
@@ -60,6 +62,20 @@ TEST(Group, read_list) {
     listroot *meta_ptr = static_cast<listroot*>( pmemobj_direct(meta_root) );
 
     EXPECT_EQ(meta_ptr->node_count, 1);
+}
+
+TEST(Group, traverse_list) { 
+    GroupManager g1;
+
+    listroot *root = g1[0].get_pm_root();
+    listnode *head = OID2POINTER(listnode *, root->head);
+
+    int count = 1;
+    while (!head) {
+        count ++;
+        head = OID2POINTER(listnode *, head->next);
+    }
+    EXPECT_EQ(count, root->node_count);
 }
 
 int main(int argc, char **argv) {

@@ -67,21 +67,23 @@ class Group {
     inline PMEMobjpool *get_pop() {
         return pool->pop;
     }
-    bool check_list_exist();       // 检查group分区内链表是否已经存在
-    PMEMoid alloc_node();          // 分配链表节点
-    void free_node(PMEMoid node);  //
-    void add_node_to_tail(PMEMoid node);
-    void delete_node_from_list(PMEMoid prev, PMEMoid node);
+    listroot *get_pm_root();                                    // 返回pm根节点(元数据区域)
+    bool check_list_exist();                                    // 检查group分区内链表是否已经存在
+    PMEMoid alloc_node();                                       // 分配链表节点
+    void free_node(PMEMoid node);                               //
+
+    void add_node_to_tail(PMEMoid node);                        // 添加节点到链表尾部
+    void delete_node_from_list(PMEMoid prev, PMEMoid node);     // 释放指定链表节点
 
   private:
     FsDaxDevice *pool;
 
-    int _gid;             // 组号
-    int _allocated_nums;  // 已经分配出去的节点数量
+    int _gid_dram;             // 组号
+    int _node_count_dram;  // 已经分配出去的节点数量
 
     // 对group的链表追加写结构
-    listnode *tail;  // DRAM写指针
-    size_t offset;
+    listnode *_tail_dram;  // DRAM写指针
+    size_t _offset_dram;
 };
 
 /* ---- 对所有分区进行管理 ---- */

@@ -23,4 +23,7 @@
 /* misc */
 #define DEFAULT_PARTITION_NUMS 4
 
+/* 指针快速转换 */
+#define OID2POINTER(type, var) (type)(pmemobj_direct(var))
+#define POINTER2OID(var) (pmemobj_oid((const void *)var))
 #endif
